@@ -1,6 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
+from django.urls import reverse
+import markdown
+from django.utils.html import strip_tags
 
 # Create your models here.
 
@@ -66,9 +69,24 @@ class Post(models.Model):
         verbose_name = '文章'
         verbose_name_plural = verbose_name
 
-    # 每个model都有一个save方法，包含了将model数据保存到数据库的逻辑，这里对其进行覆写
-    # 通过覆写该方法，在model被save到数据库前指定modified_time的值为当前时间
+    # 覆写save方法，在model被save到数据库前指定modified_time的值为当前时间
     # 实现每次保存模型时，都修改modified_time的值
+    # 在数据被把保存到数据库前，先从body字段摘取n个字符保存到excerpt中,从而实现自动摘要
     def save(self, *args, **kwargs):
         self.modified_time = timezone.now()
+        # 实例化一个Markdown类用于渲染body文本
+        md = markdown.Markdown(extensions=[
+            'markdown.extensions.extra',
+            'markdown.extensions.codehilite',
+        ])
+        # 将markdown本文渲染成html文本
+        # strip_tags方法去掉html文本的全部标签
+        # 从文本摘取前54个字符给excerpt
+        self.excerpt = strip_tags(md.convert(self.body))[:54]
+
         super().save(*args, **kwargs)
+
+    def get_absolute_url(self):
+        # reverse函数第一个参数表示blog应用下名为detail的函数
+        # 勇敢reverse函数来获取对应的网址
+        return reverse('blog:detail', kwargs={'pk': self.pk})
