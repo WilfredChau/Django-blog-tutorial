@@ -1,12 +1,14 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from blog.models import Post
 from django.views.decorators.http import require_POST
+from django.contrib import messages
 
 from .forms import CommentForm
 
 # 存放视图函数
 
 
+# comment页面视图函数
 def comment(request, post_pk):
     # 获取被评论的文章
     post = get_object_or_404(Post, pk=post_pk)
@@ -22,6 +24,8 @@ def comment(request, post_pk):
         comment.post = post
         # 保存数据进数据库
         comment.save()
+        # 向用户反馈评论成功的消息
+        messages.add_message(request, messages.SUCCESS, '评论发表成功！', extra_tags='success')
         # 重定向到post详情页
         return redirect(post)
 
@@ -30,4 +34,6 @@ def comment(request, post_pk):
         'post': post,
         'form': form,
     }
+    # 向用户反馈评论失败的消息
+    messages.add_message(request, messages.ERROR, '评论发表失败！请修改错误后重新提交。', extra_tags='danger')
     return render(request, 'comments/preview.html', context=context)

@@ -68,6 +68,8 @@ class Post(models.Model):
     class Meta:
         verbose_name = '文章'
         verbose_name_plural = verbose_name
+        # 利用ordering属性指定文章排序方式
+        ordering = ['-created_time']
 
     # 覆写save方法，在model被save到数据库前指定modified_time的值为当前时间
     # 实现每次保存模型时，都修改modified_time的值
